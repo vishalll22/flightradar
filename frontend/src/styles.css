@@ -1,0 +1,100 @@
+:root {
+  color-scheme: dark;
+  --panel-bg: rgba(15, 20, 28, 0.85);
+  --accent: #ffd166;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: #0b0e14;
+}
+
+#map {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.hud {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 1000;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--panel-bg);
+  color: #e6edf3;
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 13px;
+  line-height: 1.5;
+  min-width: 190px;
+}
+
+.hud h1 {
+  margin: 0 0 6px;
+  font-size: 15px;
+  letter-spacing: 0.5px;
+}
+
+.hud .stat {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.hud .stat b {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+.status-dot.connected {
+  background: #3fb950;
+}
+.status-dot.disconnected {
+  background: #f85149;
+}
+
+/* Plane marker: a wrapper we rotate, containing the SVG. */
+.plane-marker {
+  width: 24px;
+  height: 24px;
+  transform-origin: center;
+  transition: transform 0.3s linear;
+  color: var(--accent);
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.8));
+}
+.plane-marker.on-ground {
+  color: #8b949e;
+}
+.plane-marker svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.leaflet-tooltip.plane-tip {
+  background: var(--panel-bg);
+  border: none;
+  color: #e6edf3;
+  font-size: 12px;
+  box-shadow: none;
+}
+.leaflet-tooltip.plane-tip::before {
+  display: none;
+}
