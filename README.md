@@ -65,6 +65,31 @@ npm install
 npm run dev   # http://localhost:5173, proxies /api and /ws to :8000
 ```
 
+## Deploy to Render (from GitHub)
+
+This repo ships a `render.yaml` Blueprint that provisions all three pieces — Redis
+(Render "Key Value"), the Docker backend, and the static frontend — in one go.
+
+1. Push this repo to GitHub (already done).
+2. On <https://dashboard.render.com> → **New → Blueprint**, connect the repo and
+   select `render.yaml`. Render creates `flightradar-redis`, `flightradar-backend`,
+   and `flightradar-frontend`.
+3. Set the secrets Render leaves blank (they're kept out of git on purpose):
+   - **flightradar-backend** → `OPENSKY_CLIENT_ID`, `OPENSKY_CLIENT_SECRET`.
+   - Deploy the backend, then copy its public URL (e.g.
+     `https://flightradar-backend.onrender.com`).
+   - **flightradar-frontend** → `VITE_WS_URL` = that URL with `wss://` and `/ws`,
+     e.g. `wss://flightradar-backend.onrender.com/ws`. Then trigger a frontend
+     redeploy so the value is baked into the build.
+4. Open the frontend URL — planes should stream in.
+
+Notes:
+- The browser talks to the backend **cross-origin** (separate URLs); the backend
+  already sends permissive CORS and accepts cross-origin WebSockets.
+- On Render's **free** tier the backend sleeps after ~15 min idle (first request
+  cold-starts in ~30 s, and ingestion pauses while asleep). Move the backend to a
+  paid instance for always-on tracking. The static frontend does not sleep.
+
 ## How it works (details)
 
 - **Bounding-box querying** — the frontend never asks for "all planes". On every

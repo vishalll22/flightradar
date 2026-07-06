@@ -1,0 +1,55 @@
+# Render Blueprint — provisions the whole stack from this repo.
+# https://render.com/docs/blueprint-spec
+#
+# After the first sync you must set two secret env vars in the Render dashboard
+# (they are intentionally not stored in git):
+#   * flightradar-backend  -> OPENSKY_CLIENT_ID, OPENSKY_CLIENT_SECRET
+#   * flightradar-frontend -> VITE_WS_URL = wss://<backend-url>/ws
+# See the "Deploy to Render" section of README.md for the click-by-click steps.
+
+services:
+  # --- Redis (Render "Key Value") --------------------------------------------
+  - type: keyvalue
+    name: flightradar-redis
+    plan: free
+    ipAllowList: [] # private network only — reachable by Render services, not the internet
+    maxmemoryPolicy: allkeys-lru
+
+  # --- Backend (FastAPI, Docker) ---------------------------------------------
+  - type: web
+    name: flightradar-backend
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /health
+    envVars:
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: flightradar-redis
+          property: connectionString
+      - key: POLL_INTERVAL
+        value: "8"
+      # Secrets — set these in the dashboard (sync:false keeps them out of git).
+      - key: OPENSKY_CLIENT_ID
+        sync: false
+      - key: OPENSKY_CLIENT_SECRET
+        sync: false
+
+  # --- Frontend (React build, static) ----------------------------------------
+  - type: web
+    name: flightradar-frontend
+    runtime: static
+    buildCommand: cd frontend && npm ci && npm run build
+    staticPublishPath: ./frontend/dist
+    envVars:
+      # Point the browser at the backend's public WebSocket. Set in the dashboard
+      # once the backend URL exists, e.g. wss://flightradar-backend.onrender.com/ws
+      - key: VITE_WS_URL
+        sync: false
+    routes:
+      # SPA fallback: serve index.html for client-side routes.
+      - type: rewrite
+        source: /*
+        destination: /index.html
